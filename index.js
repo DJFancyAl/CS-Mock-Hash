@@ -45,7 +45,7 @@ hashPassword = async (username, password) => {
     globalStore[username] = hashedPassword
 
     // TODO: Print a status update including the username and password hash
-    console.log(`User '${username}' was added. Their password hash is ${hashedPassword}`)
+    console.log(`✅ User '${username}' was added. Their password hash is ${hashedPassword}`)
 }
 
 
