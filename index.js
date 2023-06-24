@@ -1,5 +1,6 @@
 // This allows us to use the bcrypt algorithm in our Node.js project
 const bcrypt = require('bcrypt')
+const saltRounds = 12;
 
 // This allows us to read from the terminal
 const readlineSync = require('readline-sync')
@@ -8,26 +9,26 @@ const readlineSync = require('readline-sync')
 let globalStore = {}
 
 
-
 /*
 * SOLUTION CODE FOR BCRYPT FUNCTIONS
 */
 
 // function for checking a password
 checkPassword = async (username, plaintextPassword) => {
-    // TODO: Make sure to delete this console.log once you're done implementing the function!
-    console.log('\n Uh-oh, checkPassword is not yet implemented. 😢')
     // Ensure global store contains the user 
     // (this is a quick way to check if an object contains a key)
     if (globalStore[username]) {
         // TODO: Use bcrypt's compare methof to compare a plaintext password to a password hash
+        const result = await bcrypt.compare(plaintextPassword, globalStore[username])
 
         // TODO: The result variable is a boolean. True means the user was valid. Take action accordingly.
         if (result) {
             // TODO: Display message for valid credentials
+            console.log(`${username} is logged in!`)
         }
         else {
             // TODO: Display message for invalid credentials
+            console.log(`Invalid credentials!!!`)
         }
     }
     else {
@@ -37,18 +38,15 @@ checkPassword = async (username, plaintextPassword) => {
 }
 
 hashPassword = async (username, password) => {
-    // TODO: Make sure to delete this console.log once you're done implementing the function!
-    console.log('\nUh-oh, hashPassword is not yet implemented. 😢')
-
     // TODO: Make the password hash using bcrypt
+    const hashedPassword = await bcrypt.hash(password, 12)
 
     // TODO: Add the user and password hash to the global store object
+    globalStore[username] = hashedPassword
 
     // TODO: Print a status update including the username and password hash
+    console.log(`User '${username}' was added. Their password hash is ${hashedPassword}`)
 }
-
-
-
 
 
 /* 
@@ -86,6 +84,36 @@ loginUser = async () => {
     await checkPassword(user, pass)
 }
 
+changePassword = async () => {
+    // Greet the user
+    console.log(`\nOkay, let's change your password!\n`)
+
+    // Prompt the user for their username
+    let username = readlineSync.question(`What's your username?`)
+    
+    if (globalStore[username]) {
+        // Prompt the user for their old password
+        let oldPass = readlineSync.question(`What's your old password? `)
+
+        // Verify the old password
+        const result = await bcrypt.compare(oldPass, globalStore[username])
+
+        // TODO: The result variable is a boolean. True means the user was valid. Take action accordingly.
+        if (result) {
+            // TODO: Display message for valid credentials
+            let newPass = readlineSync.question(`Okay ${username}, what is your new password? `)
+            await hashPassword(username, newPass)
+            console.log('Password changed!')
+        }
+        else {
+            // TODO: Display message for invalid credentials
+            console.log(`Invalid credentials!!!`)
+        }
+    } else {
+        console.log('\n❌ Sorry, but this user does not exist.\n')
+    }
+}
+
 viewStore = () => {
     // Show the total user count
     console.log(`\nThere are ${Object.keys(globalStore).length} users in the system.\n`)
@@ -116,11 +144,15 @@ programLoop = async () => {
             case 'login':
                 await loginUser()
                 break
+            case 'edit':
+                await changePassword()
+                break
             case 'help':
                 console.log('\nYou can choose from the following actions:\n')
                 console.log('\tview: see all users')
                 console.log('\tcreate: add a new user')
                 console.log('\tlogin: login to a specific user')
+                console.log('\tedit: set a new password')
                 console.log('\thelp: show available commands')
                 console.log('\texit: quit this program\n\n')
                 break
